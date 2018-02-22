@@ -357,6 +357,12 @@ class VclusterMgr(object):
         clusterfile.close()
         return [True, clusterinfo]
 
+    def mount_external_fs(self, username, clustername):
+        [status, clusterinfo] = self.get_clusterinfo(clustername, username)
+        if not status:
+            return [False, "cluster not found"]
+        
+
     def flush_cluster(self,username,clustername,containername):
         begintime = datetime.datetime.now()
         [status, info] = self.get_clusterinfo(clustername, username)

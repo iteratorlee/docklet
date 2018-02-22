@@ -301,6 +301,88 @@
     						</div>
     					</div>
   		                </div>
+                      <div class="row">
+              <div class="col-md-12">
+                <div class="box box-info">
+                     <div class="box-header with-border">
+                       <h4 class="box-title">Mount Object Storage</h4>
+                       <div class="box-tools pull-right">
+                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                         </button>
+                         <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                       </div>
+                     </div>
+                <div class="box-body">
+                  <p>
+                  <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#AddossInfo_{{ clustername }}_{{master.split("@")[1]}}"><i class="fa fa-plus"></i>Add</button>
+                      </p>
+                  <div class="modal inmodal" id="AddossInfo_{{ clustername }}_{{master.split("@")[1]}}" tabindex="-1" role="dialog" aria-hidden="true">
+                                       <div class="modal-dialog">
+                                       <div class="modal-content animated fadeIn">
+                                               <div class="modal-header">
+                                                   <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                                   <i class="fa fa-plus modal-icon"></i>
+                                                   <h4 class="modal-title">Mount object storage</h4>
+                                                   <small class="font-bold">Mount object storage into a workspace</small>
+                                               </div>
+                                               <div class="modal-body">
+                                                      <form action="/external_fs/mount/{{master.split("@")[0]}}/" method="POST" id="MountExternalFSForm">
+                                                        <div class="form-group">
+                                                          <label>Cluster Name</label>
+                                                          <input type = "text" value="{{ clustername }}" class="form-control" name="clustername" readonly="readonly">
+                                                        </div>
+                                                         <div class="form-group">
+                                                           <label>External FS Type</label>
+                                                           <select class="form-control" name="node_name" onchange="chnodeip(this.value,node_ip)">
+                                                            {% for container in clusterinfo['containers'] %}
+                                                             <option value="{{ container['containername'] }}">{{ container['containername'] }}</option>
+                                                             {% endfor %}
+                                                           </select>
+                                                         </div>
+                                                         <div class="form-group">
+                                                           <label>Node IP</label>
+                                                           <input type = "text" value="{{ clusterinfo["containers"][0]["ip"][:clusterinfo["containers"][0]["ip"].index("/")] }}" class="form-control" name="node_ip" readonly="readonly">
+                                                         </div>
+                                                         <div class="form-group">
+                                                           <label>Node Port</label><small class="font-bold"> The port that the host port is mapping to(1-65535).</small>
+                                                           <input type="number" class="form-control" placeholder="1-65535" value="80" name="node_port" id="node_port" min="1" max="65535"/>
+                                                         </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                                    </div>
+                                                      </form>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                             <table class="table table-bordered">
+                                 <thead>
+                                 <tr>
+                                     <th>Bucket Name</th>
+                                     <th>Endpoint</th>
+                                     <th>AccessId</th>
+                                     <th>AccessKey</th>
+                                     <th>Mount Path</th>
+                                     <th>Unmount</th>
+                                 </tr>
+                                 </thead>
+                                 <tbody>
+                                 {% for record in clusterinfo['port_mapping'] %}
+                                 <tr>
+                                     <td>{{ record['node_name'] }}</td>
+                                     <td>{{ record['node_ip'] }}</td>
+                                     <td>{{ record['node_port'] }}</td>
+                                     <td>{{ clusterinfo['proxy_public_ip'] }}</td>
+                                     <td>{{ record['host_port'] }}</td>
+                                     <td><a class="btn btn-xs btn-danger" href="/port_mapping/delete/{{master.split("@")[0]}}/{{ clustername }}/{{ record['node_name'] }}/{{ record['node_port'] }}/">Delete</a></td>
+                                 {% endfor %}
+                                 </tbody>
+                             </table>
+                </div>
+                </div>
+              </div>
+                      </div>
                      </div>
                  </div>
              </div>

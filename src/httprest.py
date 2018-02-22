@@ -447,7 +447,7 @@ def add_port_mapping(user, beans, form):
 def delete_port_mapping(user, beans, form):
     global G_vclustermgr
     global G_ulockmgr
-    logger.info ("handle request : delete port mapping")
+    logger.info("handle request : delete port mapping")
     node_name = form.get("node_name",None)
     clustername = form.get("clustername", None)
     node_port = form.get("node_port", None)
@@ -460,6 +460,23 @@ def delete_port_mapping(user, beans, form):
         return json.dumps({'success':'true', 'action':'addproxy'})
     else:
         return json.dumps({'success':'false', 'message': message})
+
+@app.route("/external_fs/mount/", methods=['POST'])
+@login_required
+def mount_external_fs(user, beans, form):
+    global G_vclustermgr
+    global G_ulockmgr
+    logger.info("handle request : mount external fs")
+    clustername = form.get("clustername")
+    if clustername is None:
+        return json.dumps({'success' : 'false', 'message' : 'Illegal form'})
+    G_ulockmgr.acquire(user)
+    [status, message] = G_vclustermgr.mount_external_fs(user, clustername)
+    G_ulockmgr.release(user)
+    if status is True:
+        return json.dumps({'success':'true', 'action':'mount external fs'})
+    else:
+        return json.dumps({'success':'false', 'message':message})
 
 @app.route("/monitor/hosts/<com_id>/<issue>/", methods=['POST'])
 @login_required
