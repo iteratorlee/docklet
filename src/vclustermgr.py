@@ -10,6 +10,7 @@ import proxytool
 import requests, threading
 import traceback
 from nettools import portcontrol
+from externalfsmgr import AliyunOSSManager
 
 userpoint = "http://" + env.getenv('USER_IP') + ":" + str(env.getenv('USER_PORT'))
 def post_to_user(url = '/', data={}):
@@ -357,11 +358,26 @@ class VclusterMgr(object):
         clusterfile.close()
         return [True, clusterinfo]
 
-    def mount_external_fs(self, username, clustername):
-        [status, clusterinfo] = self.get_clusterinfo(clustername, username)
+    def mount_external_fs(self, **kwargs):
+        [status, clusterinfo] = self.get_clusterinfo(kwargs['clustername'], kwargs['username'])
+        return [False, json.dumps(kwargs, indent=4)]
         if not status:
             return [False, "cluster not found"]
-        
+        if 'fs_type' not in kwargs:
+            return [False, "fs type has not been indicated"]
+        #TODO: check if mount_path is legal
+        global_mount_path = self.fspath + "/global/users/" + username + "/data/" + kwargs['mount_path']
+        if kwargs['fs_type'] == 'aliyun_oss':
+            AliyunOSSManager.mount(
+                    mount_path=global_mount_path,
+                    bucket_name=kwargs['bucket_name'],
+                    access_id=kwargs['access_id'],
+                    access_key=kwargs['access_key'],
+                    endpoint=kwargs['endpoint']
+                )
+        else:
+            return [False, "fs type unrecognized"]
+
 
     def flush_cluster(self,username,clustername,containername):
         begintime = datetime.datetime.now()

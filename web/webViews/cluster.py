@@ -439,11 +439,20 @@ class delPortMappingView(normalView):
         return self.post()
 
 class mountExternalFSView(normalView):
-    template_path = "error_path"
+    template_path = "error.html"
 
     @classmethod
     def post(self):
-        data = {"clustername":request.form["clustername"], "node_name":request.form["node_name"],"node_port":request.form["node_port"]}
+        #data = {"clustername":request.form["clustername"], "node_name":request.form["node_name"],"node_port":request.form["node_port"]}
+        data = {
+            "fs_type" : request.form["fs_type"],
+            "clustername" : request.form["clustername"],
+            "mount_path" : request.form["mount_path"],
+            "bucket_name" : request.form["bucket_name"],
+            "endpoint" : request.form["endpoint"],
+            "access_id" : request.form["access_id"],
+            "access_key" : request.form["access_key"]
+        }
         result = dockletRequest.post('/external_fs/mount/', data, self.masterip)
         success = result.get("success")
         if success == "true":

@@ -243,11 +243,11 @@ def delPortMapping(masterip,clustername,node_name,node_port):
     delPortMappingView.node_port = node_port
     return delPortMappingView.as_view()
 
-@app.route("/externel_fs/mount/<masterip>/", methods=['POST'])
+@app.route("/external_fs/mount/<masterip>/", methods=['POST'])
 @login_required
-def mountExternelFS(masterip):
-    mountExternelFSView.masterip = masterip
-    return mountExternelFSView.as_view()
+def mountExternalFS(masterip):
+    mountExternalFSView.masterip = masterip
+    return mountExternalFSView.as_view()
 
 @app.route("/getmasterdesc/<mastername>/", methods=['POST'])
 @login_required
