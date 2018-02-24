@@ -43,7 +43,7 @@ class AliyunOSSManager(ExternalFSManager):
     def mount_oss(self, bucket_name, mount_path, endpoint):
         logger.info('mount_oss function entered')
         if not os.path.exists(mount_path):
-            print('oss mount path "%s" does not exist, trying to create' % mount_path)
+            logger.info('oss mount path "%s" does not exist, trying to create' % mount_path)
             try:
                 os.makedirs(mount_path)
             except Error:
