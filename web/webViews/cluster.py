@@ -443,7 +443,6 @@ class mountExternalFSView(normalView):
 
     @classmethod
     def post(self):
-        #data = {"clustername":request.form["clustername"], "node_name":request.form["node_name"],"node_port":request.form["node_port"]}
         data = {
             "fs_type" : request.form["fs_type"],
             "clustername" : request.form["clustername"],
@@ -454,6 +453,23 @@ class mountExternalFSView(normalView):
             "access_key" : request.form["access_key"]
         }
         result = dockletRequest.post('/external_fs/mount/', data, self.masterip)
+        success = result.get("success")
+        if success == "true":
+            return redirect("/config/")
+        else:
+            return self.render(self.template_path, message = result.get("message"))
+
+class unmountExternalFSView(normalView):
+    template_path = "error.html"
+
+    @classmethod
+    def post(self):
+        data = {
+            "fs_type" : self.fs_type,
+            "mount_path" : self.mount_path,
+            "clustername" : self.clustername
+        }
+        result = dockletRequest.post('/external_fs/unmount/', data, self.masterip)
         success = result.get("success")
         if success == "true":
             return redirect("/config/")

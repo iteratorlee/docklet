@@ -378,23 +378,21 @@
                              <table class="table table-bordered">
                                  <thead>
                                  <tr>
+                                     <th>File System Type</th>
                                      <th>Bucket Name</th>
-                                     <th>Endpoint</th>
-                                     <th>AccessId</th>
-                                     <th>AccessKey</th>
                                      <th>Mount Path</th>
+                                     <th>Endpoint</th>
                                      <th>Unmount</th>
                                  </tr>
                                  </thead>
                                  <tbody>
-                                 {% for record in clusterinfo['port_mapping'] %}
+                                 {% for record in clusterinfo['external_fs'] %}
                                  <tr>
-                                     <td>{{ record['node_name'] }}</td>
-                                     <td>{{ record['node_ip'] }}</td>
-                                     <td>{{ record['node_port'] }}</td>
-                                     <td>{{ clusterinfo['proxy_public_ip'] }}</td>
-                                     <td>{{ record['host_port'] }}</td>
-                                     <td><a class="btn btn-xs btn-danger" href="/port_mapping/delete/{{master.split("@")[0]}}/{{ clustername }}/{{ record['node_name'] }}/{{ record['node_port'] }}/">Delete</a></td>
+                                     <td>{{ record['fs_type'] }}</td>
+                                     <td>{{ record['bucket_name'] }}</td>
+                                     <td>{{ record['mount_path'] }}</td>
+                                     <td>{{ record['endpoint'] }}</td>
+                                     <td><a class="btn btn-xs btn-danger" href="/external_fs/unmount/{{master.split("@")[0]}}/{{ clustername }}/{{ record['fs_type'] }}/{{ record['mount_path'] }}/">Unmount</a></td>
                                  {% endfor %}
                                  </tbody>
                              </table>

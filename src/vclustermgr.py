@@ -368,13 +368,55 @@ class VclusterMgr(object):
         #TODO: check if mount_path is legal
         global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/data/" + kwargs['mount_path']
         if kwargs['fs_type'] == 'aliyun_oss':
-            return AliyunOSSManager.mount(
+            [status, msg] = AliyunOSSManager.mount(
                     mount_path=global_mount_path,
                     bucket_name=kwargs['bucket_name'],
                     access_id=kwargs['access_id'],
                     access_key=kwargs['access_key'],
                     endpoint=kwargs['endpoint']
                 )
+            if status:
+                if not 'external_fs' in clusterinfo.keys():
+                    clusterinfo['external_fs'] = []
+                external_fs_info = {
+                    'fs_type' : 'aliyun_oss',
+                    'mount_path' : kwargs['mount_path'],
+                    'bucket_name' : kwargs['bucket_name'],
+                    'endpoint' : kwargs['endpoint']
+                }
+                clusterinfo['external_fs'].append(external_fs_info)
+                clusterfile_path = self.fspath + "/global/users/" + kwargs['username'] + "/clusters/" + kwargs['clustername']
+                with open(clusterfile_path, 'w') as clusterfile:
+                    clusterfile.write(json.dumps(clusterinfo))
+            return [status, msg]
+        else:
+            return [False, "fs type unrecognized"]
+
+    def unmount_external_fs(self, **kwargs):
+        [status, clusterinfo] = self.get_clusterinfo(kwargs['clustername'], kwargs['username'])
+        if not status:
+            return [False, "cluster not found"]
+        if 'fs_type' not in kwargs:
+            return [False, "fs type has not been indicated"]
+
+        global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/data/" + kwargs['mount_path']
+        if kwargs['fs_type'] == 'aliyun_oss':
+            idx = 0
+            for external_fs_info in clusterinfo['external_fs']:
+                if external_fs_info['mount_path'] == kwargs['mount_path']:
+                    break
+                idx += 1
+            if idx == len(clusterinfo['external_fs']):
+                return [False, "no such external fs mounted"]
+            [status, msg] = AliyunOSSManager.unmount(
+                    mount_path=kwargs['mount_path']
+                )
+            if status:
+                clusterinfo['external_fs'].pop(idx)
+                clusterfile_path = self.fspath + "/global/users/" + kwargs['username'] + "/clusters/" + kwargs['clustername']
+                with open(clusterfile_path, 'w') as clusterfile:
+                    clusterfile.write(json.dumps(clusterinfo))
+            return [status, msg]
         else:
             return [False, "fs type unrecognized"]
 
