@@ -6,7 +6,7 @@ from log import logger
 
 class ExternalFSManager(object):
     '''
-    Handle the mounting of external file system 
+    Handle the mounting of external file system
     '''
     @classmethod
     def mount(self, **kwargs):
@@ -15,7 +15,7 @@ class ExternalFSManager(object):
     @classmethod
     def unmount(self, **kwargs):
         pass
-        
+
 
 class AliyunOSSManager(ExternalFSManager):
     '''
@@ -23,34 +23,57 @@ class AliyunOSSManager(ExternalFSManager):
     '''
     @classmethod
     def add_oss_ak(self, bucket_name, access_id, access_key):
-        oss_passwd_file = 'test-passwd-ossfs'
-        #oss_passwd_file = '/etc/passwd-ossfs'
-        with open(oss_passwd_file, 'aw+') as fd:
-            new_ak = bucket_name + ':' + access_id + ':' + access_key + '\n'
-            fd.write(new_ak)
+        #oss_passwd_file = 'test-passwd-ossfs'
+        oss_passwd_file = '/etc/passwd-ossfs'
+        all_aks = []
+        with open(oss_passwd_file, 'r') as fd:
+            all_aks = fd.readlines()
+
+        new_ak = bucket_name + ':' + access_id + ':' + access_key + '\n'
+        if not new_ak in all_aks:
+            with open(oss_passwd_file, 'a+') as fd:
+                fd.write(new_ak)
+                logger.info('new aliyun oss access_key added, bucket_name: %s' % bucket_name)
+        else:
+            logger.info('access_key already exists')
+
         os.chmod(oss_passwd_file, stat.S_IRUSR + stat.S_IWUSR + stat.S_IRGRP)
 
     @classmethod
     def mount_oss(self, bucket_name, mount_path, endpoint):
+        logger.info('mount_oss function entered')
         if not os.path.exists(mount_path):
-            error_msg = 'oss mount path "%s" does not exist!' % mount_path
-            return error_msg
+            print('oss mount path "%s" does not exist, trying to create' % mount_path)
+            try:
+                os.makedirs(mount_path)
+            except Error:
+                error_msg = ('create mount path %s error' % mount_path)
+                return False, error_msg
+
+        cmd = 'ossfs ' + bucket_name + ' ' + mount_path + ' -ourl=' + endpoint
+        prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+        msg = prog.stderr.read().decode()
+        if msg != '':
+            return False, msg
         else:
-            cmd = 'ossfs ' + bucket_name + ' ' + mount_path + ' -ourl=' + endpoint
-            prog = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-            msg = prog.stdout.read().decode()
-            return msg
+            logger.info('aliyun oss mounted: bucket_name: %s, mount_path %s, endpoint: %s' \
+                        % (bucket_name, mount_path, endpoint))
+            return True, msg
 
     @classmethod
     def umount_oss(self, mount_path):
         if not os.path.exists(mount_path):
             error_msg = 'oss mount path "%s" does not exist!' % mount_path
-            return error_msg
+            return False, error_msg
         else:
             cmd = 'umount ' + mount_path
-            prog = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-            msg = prog.stdout.read().decode()
-            return msg
+            prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+            msg = prog.stderr.read().decode()
+            if msg != '':
+                return False, msg
+            else:
+                logger.info('aliyun oss unmounted: mount_path: %s' % mount_path)
+                return True, msg
 
     @classmethod
     def mount(self, **kwargs):
@@ -60,9 +83,19 @@ class AliyunOSSManager(ExternalFSManager):
         access_id = kwargs['access_id']
         access_key = kwargs['access_key']
         self.add_oss_ak(bucket_name, access_id, access_key)
-        self.mount_oss(bucket_name, mount_path, endpoint)
+        status, msg = self.mount_oss(bucket_name, mount_path, endpoint)
+        if not status:
+            logger.error('mount failed: ', msg)
+            return [False, msg]
+        else:
+            return [True, msg]
 
     @classmethod
     def unmount(self, **kwargs):
         mount_path = kwargs['mount_path']
-        self.umount_oss(self, mount_path)
+        status, msg = self.umount_oss(mount_path)
+        if not status:
+            logger.error('unmount failed: ', msg)
+            return [False, msg]
+        else:
+            return [True, msg]

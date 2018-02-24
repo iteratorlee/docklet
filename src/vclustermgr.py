@@ -360,7 +360,7 @@ class VclusterMgr(object):
 
     def mount_external_fs(self, **kwargs):
         [status, clusterinfo] = self.get_clusterinfo(kwargs['clustername'], kwargs['username'])
-        return [False, json.dumps(kwargs, indent=4)]
+        #return [False, json.dumps(kwargs, indent=4)]
         if not status:
             return [False, "cluster not found"]
         if 'fs_type' not in kwargs:
@@ -368,7 +368,7 @@ class VclusterMgr(object):
         #TODO: check if mount_path is legal
         global_mount_path = self.fspath + "/global/users/" + username + "/data/" + kwargs['mount_path']
         if kwargs['fs_type'] == 'aliyun_oss':
-            AliyunOSSManager.mount(
+            return AliyunOSSManager.mount(
                     mount_path=global_mount_path,
                     bucket_name=kwargs['bucket_name'],
                     access_id=kwargs['access_id'],
