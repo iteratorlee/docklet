@@ -50,15 +50,26 @@ class AliyunOSSManager(ExternalFSManager):
                 error_msg = ('create mount path %s error' % mount_path)
                 return False, error_msg
 
-        cmd = 'ossfs ' + bucket_name + ' ' + mount_path + ' -ourl=' + endpoint
-        prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+        mount_cmd = 'ossfs ' + bucket_name + ' ' + mount_path + ' -ourl=' + endpoint + ' -o allow_other'
+        prog = subprocess.Popen(mount_cmd, shell=True, stderr=subprocess.PIPE)
         msg = prog.stderr.read().decode()
         if msg != '':
             return False, msg
         else:
             logger.info('aliyun oss mounted: bucket_name: %s, mount_path %s, endpoint: %s' \
                         % (bucket_name, mount_path, endpoint))
-            return True, msg
+            if mount_path[-1] != '/':
+                mount_path += '/*'
+            else:
+                mount_path += '*'
+            chmod_cmd = 'chmod -R 777 ' + mount_path
+            logger.info('chmod_cmd: ', chmod_cmd)
+            prog = subprocess.Popen(chmod_cmd, shell=True, stderr=subprocess.PIPE)
+            msg = prog.stderr.read().decode()
+            logger.info('chmod_cmd msg: ', msg)
+            if msg != '':
+                return False, msg
+            return True, ''
 
     @classmethod
     def umount_oss(self, mount_path):
