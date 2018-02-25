@@ -305,7 +305,7 @@
               <div class="col-md-12">
                 <div class="box box-info">
                      <div class="box-header with-border">
-                       <h4 class="box-title">Mount Object Storage</h4>
+                       <h4 class="box-title">Mount External Storage</h4>
                        <div class="box-tools pull-right">
                          <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                          </button>
@@ -322,8 +322,8 @@
                                                <div class="modal-header">
                                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                                                    <i class="fa fa-plus modal-icon"></i>
-                                                   <h4 class="modal-title">Mount object storage</h4>
-                                                   <small class="font-bold">Mount object storage into a workspace</small>
+                                                   <h4 class="modal-title">Mount External Storage</h4>
+                                                   <small class="font-bold">Mount external storage into a workspace</small>
                                                </div>
                                                <div class="modal-body">
                                                       <form action="/external_fs/mount/{{master.split("@")[0]}}/" method="POST" id="MountExternalFSForm">
@@ -390,7 +390,7 @@
                                  <tr>
                                      <td>{{ record['fs_type'] }}</td>
                                      <td>{{ record['bucket_name'] }}</td>
-                                     <td>{{ record['mount_path'] }}</td>
+                                     <td>/nfs/{{ record['mount_path'] }}</td>
                                      <td>{{ record['endpoint'] }}</td>
                                      <td><a class="btn btn-xs btn-danger" href="/external_fs/unmount/{{master.split("@")[0]}}/{{ clustername }}/{{ record['fs_type'] }}/{{ record['mount_path'] }}">Unmount</a></td>
                                  {% endfor %}

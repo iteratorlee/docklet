@@ -62,11 +62,10 @@ class AliyunOSSManager(ExternalFSManager):
                 mount_path += '/*'
             else:
                 mount_path += '*'
+            
             chmod_cmd = 'chmod -R 777 ' + mount_path
-            logger.info('chmod_cmd: ', chmod_cmd)
             prog = subprocess.Popen(chmod_cmd, shell=True, stderr=subprocess.PIPE)
             msg = prog.stderr.read().decode()
-            logger.info('chmod_cmd msg: ', msg)
             if msg != '':
                 return False, msg
             return True, ''

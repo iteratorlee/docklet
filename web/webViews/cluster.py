@@ -475,3 +475,7 @@ class unmountExternalFSView(normalView):
             return redirect("/config/")
         else:
             return self.render(self.template_path, message = result.get("message"))
+
+    @classmethod
+    def get(self):
+        return self.post()

@@ -409,7 +409,7 @@ class VclusterMgr(object):
             if idx == len(clusterinfo['external_fs']):
                 return [False, "no such external fs mounted"]
             [status, msg] = AliyunOSSManager.unmount(
-                    mount_path=kwargs['mount_path']
+                    mount_path=global_mount_path
                 )
             if status:
                 clusterinfo['external_fs'].pop(idx)
