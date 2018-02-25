@@ -26,8 +26,9 @@ class AliyunOSSManager(ExternalFSManager):
         #oss_passwd_file = 'test-passwd-ossfs'
         oss_passwd_file = '/etc/passwd-ossfs'
         all_aks = []
-        with open(oss_passwd_file, 'r') as fd:
-            all_aks = fd.readlines()
+        if os.path.exists(oss_passwd_file):
+            with open(oss_passwd_file, 'r') as fd:
+                all_aks = fd.readlines()
 
         new_ak = bucket_name + ':' + access_id + ':' + access_key + '\n'
         if not new_ak in all_aks:
@@ -62,7 +63,7 @@ class AliyunOSSManager(ExternalFSManager):
                 mount_path += '/*'
             else:
                 mount_path += '*'
-            
+
             chmod_cmd = 'chmod -R 777 ' + mount_path
             prog = subprocess.Popen(chmod_cmd, shell=True, stderr=subprocess.PIPE)
             msg = prog.stderr.read().decode()
