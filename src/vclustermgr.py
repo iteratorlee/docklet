@@ -366,7 +366,7 @@ class VclusterMgr(object):
         if 'fs_type' not in kwargs:
             return [False, "fs type has not been indicated"]
         #TODO: check if mount_path is legal
-        global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/data/" + kwargs['mount_path']
+        global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/external_data/" + kwargs['mount_path']
         if kwargs['fs_type'] == 'aliyun_oss':
             [status, msg] = AliyunOSSManager.mount(
                     mount_path=global_mount_path,
@@ -399,7 +399,7 @@ class VclusterMgr(object):
         if 'fs_type' not in kwargs:
             return [False, "fs type has not been indicated"]
 
-        global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/data/" + kwargs['mount_path']
+        global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/external_data/" + kwargs['mount_path']
         if kwargs['fs_type'] == 'aliyun_oss':
             idx = 0
             for external_fs_info in clusterinfo['external_fs']:
