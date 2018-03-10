@@ -356,6 +356,13 @@ class configView(normalView):
         allclusters = dockletRequest.post_to_all("/cluster/list/")
         for master in allclusters:
             allclusters[master] = allclusters[master].get('clusters')
+        all_external_fs_info_map = dockletRequest.post_to_all("/external_fs/list/")
+        all_external_fs_info = []
+        for master in all_external_fs_info_map:
+            tmp_external_fs_info = all_external_fs_info_map[master].get('external_fs_info')
+            if 'external_fs_info' in tmp_external_fs_info:
+                for record in tmp_external_fs_info.get('external_fs_info'):
+                    all_external_fs_info.append(record)
         allclusters_info = {}
         clusters_info = {}
         data={}
@@ -398,7 +405,7 @@ class configView(normalView):
                 'memory': defaultmemory,
                 'disk': defaultdisk
                 }
-        return self.render("config.html", allimages = allimages, allclusters = allclusters_info, mysession=dict(session), quota = quota, usage = usage, defaultsetting = defaultsetting)
+        return self.render("config.html", allimages = allimages, allclusters = allclusters_info, external_fs_info=all_external_fs_info, mysession=dict(session), quota = quota, usage = usage, defaultsetting = defaultsetting)
 
     @classmethod
     def post(self):
@@ -445,7 +452,6 @@ class mountExternalFSView(normalView):
     def post(self):
         data = {
             "fs_type" : request.form["fs_type"],
-            "clustername" : request.form["clustername"],
             "mount_path" : request.form["mount_path"],
             "bucket_name" : request.form["bucket_name"],
             "endpoint" : request.form["endpoint"],
@@ -467,7 +473,6 @@ class unmountExternalFSView(normalView):
         data = {
             "fs_type" : self.fs_type,
             "mount_path" : self.mount_path,
-            "clustername" : self.clustername
         }
         result = dockletRequest.post('/external_fs/unmount/', data, self.masterip)
         success = result.get("success")

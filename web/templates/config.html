@@ -301,105 +301,6 @@
     						</div>
     					</div>
   		                </div>
-                      <div class="row">
-              <div class="col-md-12">
-                <div class="box box-info">
-                     <div class="box-header with-border">
-                       <h4 class="box-title">Mount External Storage</h4>
-                       <div class="box-tools pull-right">
-                         <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-                         </button>
-                         <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
-                       </div>
-                     </div>
-                <div class="box-body">
-                  <p>
-                  <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#AddossInfo_{{ clustername }}_{{master.split("@")[1]}}"><i class="fa fa-plus"></i>Add</button>
-                      </p>
-                  <div class="modal inmodal" id="AddossInfo_{{ clustername }}_{{master.split("@")[1]}}" tabindex="-1" role="dialog" aria-hidden="true">
-                                       <div class="modal-dialog">
-                                       <div class="modal-content animated fadeIn">
-                                               <div class="modal-header">
-                                                   <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                                                   <i class="fa fa-plus modal-icon"></i>
-                                                   <h4 class="modal-title">Mount External Storage</h4>
-                                                   <small class="font-bold">Mount external storage into a workspace</small>
-                                               </div>
-                                               <div class="modal-body">
-                                                      <form action="/external_fs/mount/{{master.split("@")[0]}}/" method="POST" id="MountExternalFSForm">
-                                                        <div class="form-group">
-                                                          <label>Cluster Name</label>
-                                                          <input type = "text" value="{{ clustername }}" class="form-control" name="clustername" readonly="readonly">
-                                                        </div>
-                                                         <div class="form-group">
-                                                           <label>External FS Type</label>
-                                                           <select class="form-control" name="fs_type">
-                                                             <option value="aliyun_oss">Aliyun OSS</option>
-                                                             <option value="aws_s3">AWS S3</option>
-                                                             <option value="ucloud_ufile">UCloud UFile</option>
-                                                             <option value="ms_azure">Microsoft Azure</option>
-                                                           </select>
-                                                         </div>
-                                                         <div class="form-group">
-                                                           <label>Mount Path</label></br><small class="font-bold"> Should be a directory under /nfs/. The directory will be created if it does not exist.</small>
-                                                           <div class="input-group">
-                                                           <span class="input-group-addon">/exteranl_fs/</span><input type="text" class="form-control" name="mount_path"
-                                                           id = "mount_path">
-                                                           </div>
-                                                         </div>
-                                                         <div class="form-group">
-                                                           <label>Bucket Name</label>
-                                                           <input type="text" class="form-control" name="bucket_name" id="bucket_name">
-                                                         </div>
-                                                         <div class="form-group">
-                                                           <label>Endpoint</label>
-                                                           <input type="text" class="form-control" name="endpoint"
-                                                           id = "endpoint">
-                                                         </div>
-                                                         <div class="form-group">
-                                                           <label>Access ID</label>
-                                                           <input type="text" class="form-control" name="access_id"
-                                                           id = "access_id">
-                                                         </div>
-                                                         <div class="form-group">
-                                                           <label>Access Key</label>
-                                                           <input type="password" class="form-control" name="access_key"
-                                                           id = "access_key">
-                                                         </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
-                                                        <button type="submit" class="btn btn-primary">Submit</button>
-                                                    </div>
-                                                      </form>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              </div>
-                             <table class="table table-bordered">
-                                 <thead>
-                                 <tr>
-                                     <th>File System Type</th>
-                                     <th>Bucket Name</th>
-                                     <th>Mount Path</th>
-                                     <th>Endpoint</th>
-                                     <th>Unmount</th>
-                                 </tr>
-                                 </thead>
-                                 <tbody>
-                                 {% for record in clusterinfo['external_fs'] %}
-                                 <tr>
-                                     <td>{{ record['fs_type'] }}</td>
-                                     <td>{{ record['bucket_name'] }}</td>
-                                     <td>/nfs/{{ record['mount_path'] }}</td>
-                                     <td>{{ record['endpoint'] }}</td>
-                                     <td><a class="btn btn-xs btn-danger" href="/external_fs/unmount/{{master.split("@")[0]}}/{{ clustername }}/{{ record['fs_type'] }}/{{ record['mount_path'] }}">Unmount</a></td>
-                                 {% endfor %}
-                                 </tbody>
-                             </table>
-                </div>
-                </div>
-              </div>
-                      </div>
                      </div>
                  </div>
              </div>
@@ -492,6 +393,105 @@
 	</div>
 	</div>
 </div>
+
+{% for master in allclusters %}
+<div class="row">
+<div class="col-lg-12">
+<div class="box box-info collapsed-box">
+<div class="box-header with-border">
+ <h4 class="box-title">External Storage</h4>
+ <div class="box-tools pull-right">
+   <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+   </button>
+   <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+ </div>
+</div>
+<div class="box-body" style="display:none">
+<p>
+<button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#AddExternalInfo_{{master.split("@")[1]}}"><i class="fa fa-plus"></i>Add</button>
+</p>
+<div class="modal inmodal" id="AddExternalInfo_{{master.split("@")[1]}}" tabindex="-1" role="dialog" aria-hidden="true">
+                 <div class="modal-dialog">
+                 <div class="modal-content animated fadeIn">
+                         <div class="modal-header">
+                             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                             <i class="fa fa-plus modal-icon"></i>
+                             <h4 class="modal-title">Mount External Storage</h4>
+                             <small class="font-bold">Mount external storage into a workspace</small>
+                         </div>
+                         <div class="modal-body">
+                                <form action="/external_fs/mount/{{master.split("@")[0]}}/" method="POST" id="MountExternalFSForm">
+                                   <div class="form-group">
+                                     <label>External FS Type</label>
+                                     <select class="form-control" name="fs_type">
+                                       <option value="aliyun_oss">Aliyun OSS</option>
+                                       <option value="aws_s3">AWS S3</option>
+                                       <option value="ucloud_ufile">UCloud UFile</option>
+                                       <option value="ms_azure">Microsoft Azure</option>
+                                     </select>
+                                   </div>
+                                   <div class="form-group">
+                                     <label>Mount Path</label></br><small class="font-bold"> Should be a directory under /external_fs/. The directory will be created if it does not exist.</small>
+                                     <div class="input-group">
+                                     <span class="input-group-addon">/external_fs/</span><input type="text" class="form-control" name="mount_path"
+                                     id = "mount_path">
+                                     </div>
+                                   </div>
+                                   <div class="form-group">
+                                     <label>Bucket Name</label>
+                                     <input type="text" class="form-control" name="bucket_name" id="bucket_name">
+                                   </div>
+                                   <div class="form-group">
+                                     <label>Endpoint</label>
+                                     <input type="text" class="form-control" name="endpoint"
+                                     id = "endpoint">
+                                   </div>
+                                   <div class="form-group">
+                                     <label>Access ID</label>
+                                     <input type="text" class="form-control" name="access_id"
+                                     id = "access_id">
+                                   </div>
+                                   <div class="form-group">
+                                     <label>Access Key</label>
+                                     <input type="password" class="form-control" name="access_key"
+                                     id = "access_key">
+                                   </div>
+                              <div class="modal-footer">
+                                  <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                                  <button type="submit" class="btn btn-primary">Submit</button>
+                              </div>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+       <table class="table table-bordered">
+           <thead>
+           <tr>
+               <th>File System Type</th>
+               <th>Bucket Name</th>
+               <th>Mount Path</th>
+               <th>Endpoint</th>
+               <th>Unmount</th>
+           </tr>
+           </thead>
+           <tbody>
+           {% for record in external_fs_info %}
+           <tr>
+               <td>{{ record['fs_type'] }}</td>
+               <td>{{ record['bucket_name'] }}</td>
+               <td>/external_fs/{{ record['mount_path'] }}</td>
+               <td>{{ record['endpoint'] }}</td>
+               <td><a class="btn btn-xs btn-danger" href="/external_fs/unmount/{{master.split("@")[0]}}/{{ record['fs_type'] }}/{{ record['mount_path'] }}">Unmount</a></td>
+           </tr>
+           {% endfor %}
+           </tbody>
+       </table>
+</div>
+</div>
+</div>
+</div>
+{% endfor %}
 
 {% endblock %}
 

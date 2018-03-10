@@ -359,10 +359,10 @@ class VclusterMgr(object):
         return [True, clusterinfo]
 
     def mount_external_fs(self, **kwargs):
-        [status, clusterinfo] = self.get_clusterinfo(kwargs['clustername'], kwargs['username'])
+        [status, external_fs_info] = self.get_external_fs_info(kwargs['username'])
         #return [False, json.dumps(kwargs, indent=4)]
         if not status:
-            return [False, "cluster not found"]
+            external_fs_info = {}
         if 'fs_type' not in kwargs:
             return [False, "fs type has not been indicated"]
         #TODO: check if mount_path is legal
@@ -376,46 +376,46 @@ class VclusterMgr(object):
                     endpoint=kwargs['endpoint']
                 )
             if status:
-                if not 'external_fs' in clusterinfo.keys():
-                    clusterinfo['external_fs'] = []
-                external_fs_info = {
+                if not 'external_fs' in external_fs_info.keys():
+                    external_fs_info['external_fs'] = []
+                curr_external_fs_info = {
                     'fs_type' : 'aliyun_oss',
                     'mount_path' : kwargs['mount_path'],
                     'bucket_name' : kwargs['bucket_name'],
                     'endpoint' : kwargs['endpoint']
                 }
-                clusterinfo['external_fs'].append(external_fs_info)
-                clusterfile_path = self.fspath + "/global/users/" + kwargs['username'] + "/clusters/" + kwargs['clustername']
-                with open(clusterfile_path, 'w') as clusterfile:
-                    clusterfile.write(json.dumps(clusterinfo))
+                external_fs_info['external_fs_info'].append(curr_external_fs_info)
+                external_fs_info_file_path = self.fspath + "/global/users/" + kwargs['username'] + "/external_fs_info"
+                with open(external_fs_info_file_path, 'w+') as external_fs_file:
+                    external_fs_file.write(json.dumps(external_fs_info))
             return [status, msg]
         else:
             return [False, "fs type unrecognized"]
 
     def unmount_external_fs(self, **kwargs):
-        [status, clusterinfo] = self.get_clusterinfo(kwargs['clustername'], kwargs['username'])
+        [status, external_fs_info] = self.get_external_fs_info(kwargs['username'])
         if not status:
-            return [False, "cluster not found"]
+            return [False, "external fs info file not found"]
         if 'fs_type' not in kwargs:
             return [False, "fs type has not been indicated"]
 
         global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/external_data/" + kwargs['mount_path']
         if kwargs['fs_type'] == 'aliyun_oss':
             idx = 0
-            for external_fs_info in clusterinfo['external_fs']:
-                if external_fs_info['mount_path'] == kwargs['mount_path']:
+            for curr_external_fs_info in external_fs_info['external_fs_info']:
+                if curr_external_fs_info['mount_path'] == kwargs['mount_path']:
                     break
                 idx += 1
-            if idx == len(clusterinfo['external_fs']):
+            if idx == len(external_fs_info['external_fs_info']):
                 return [False, "no such external fs mounted"]
             [status, msg] = AliyunOSSManager.unmount(
                     mount_path=global_mount_path
                 )
             if status:
-                clusterinfo['external_fs'].pop(idx)
-                clusterfile_path = self.fspath + "/global/users/" + kwargs['username'] + "/clusters/" + kwargs['clustername']
-                with open(clusterfile_path, 'w') as clusterfile:
-                    clusterfile.write(json.dumps(clusterinfo))
+                external_fs_info['external_fs_info'].pop(idx)
+                external_fs_info_file_path = self.fspath + "/global/users/" + kwargs['username'] + "/external_fs_info"
+                with open(external_fs_info_file_path, 'w') as external_fs_info_file:
+                    external_fs_info_file.write(json.dumps(external_fs_info))
             return [status, msg]
         else:
             return [False, "fs type unrecognized"]
@@ -792,6 +792,13 @@ class VclusterMgr(object):
             full_clusters.append(single_cluster)
         return [True, clusters]
 
+    def list_external_fs(self, user):
+        [status, external_fs_info] = self.get_external_fs_info(user)
+        if not status:
+            return [True, {}]
+        else:
+            return [True, external_fs_info]
+
     def is_cluster(self, clustername, username):
         [status, clusters] = self.list_clusters(username)
         if clustername in clusters:
@@ -829,6 +836,14 @@ class VclusterMgr(object):
         if not os.path.isfile(clusterpath):
             return [False, "cluster not found"]
         infofile = open(clusterpath, 'r')
+        info = json.loads(infofile.read())
+        return [True, info]
+
+    def get_external_fs_info(self, username):
+        external_fs_info_path = self.fspath + "/global/users/" + username + "/external_fs_info"
+        if not os.path.isfile(external_fs_info_path):
+            return [False, None]
+        infofile = open(external_fs_info_path, 'r')
         info = json.loads(infofile.read())
         return [True, info]
 

@@ -249,11 +249,10 @@ def mountExternalFS(masterip):
     mountExternalFSView.masterip = masterip
     return mountExternalFSView.as_view()
 
-@app.route("/external_fs/unmount/<masterip>/<clustername>/<fs_type>/<mount_path>", methods=['GET'])
+@app.route("/external_fs/unmount/<masterip>/<fs_type>/<mount_path>", methods=['GET'])
 @login_required
-def unmountExternalFS(masterip, clustername, fs_type, mount_path):
+def unmountExternalFS(masterip, fs_type, mount_path):
     unmountExternalFSView.masterip = masterip
-    unmountExternalFSView.clustername = clustername
     unmountExternalFSView.fs_type = fs_type
     unmountExternalFSView.mount_path = mount_path
     return unmountExternalFSView.as_view()

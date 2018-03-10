@@ -290,6 +290,17 @@ def list_cluster(user, beans, form):
     else:
         return json.dumps({'success':'false', 'action':'list cluster', 'message':clusterlist})
 
+@app.route("/external_fs/list/", methods=['POST'])
+@login_required
+def list_external_fs(user, beans, form):
+    global G_vclustermgr
+    logger.info("handle request : list external fs info for %s" % user)
+    [status, external_fs_list] = G_vclustermgr.list_external_fs(user)
+    if status:
+        return json.dumps({'success' : 'true', 'action' : 'list external fs', 'external_fs_info' : external_fs_list})
+    else:
+        return json.dumps({'success' : 'false', 'action' : 'list external fs', 'message' : external_fs_list})
+
 @app.route("/cluster/stopall/",methods=['POST'])
 @auth_key_required
 def stopall_cluster():
@@ -467,20 +478,16 @@ def mount_external_fs(user, beans, form):
     global G_vclustermgr
     global G_ulockmgr
     logger.info("handle request : mount external fs")
-    clustername = form.get("clustername")
     fs_type = form.get("fs_type")
     mount_path = form.get("mount_path")
     bucket_name = form.get("bucket_name")
     access_id = form.get("access_id")
     access_key = form.get("access_key")
     endpoint = form.get("endpoint")
-    if clustername is None:
-        return json.dumps({'success' : 'false', 'message' : 'Illegal form'})
     G_ulockmgr.acquire(user)
     [status, message] = G_vclustermgr.mount_external_fs(
                                 username=user,
                                 fs_type=fs_type,
-                                clustername=clustername,
                                 mount_path=mount_path,
                                 bucket_name=bucket_name,
                                 access_id=access_id,
@@ -499,16 +506,12 @@ def unmount_external_fs(user, beans, form):
     global G_vclustermgr
     global G_ulockmgr
     logger.info("handler request : unmount external fs")
-    clustername = form.get("clustername")
     fs_type = form.get("fs_type")
     mount_path = form.get("mount_path")
-    if clustername is None:
-        return json.dumps({'success' : 'false', 'message' : 'Illegal form'})
     G_ulockmgr.acquire(user)
     [status, message] = G_vclustermgr.unmount_external_fs(
                                 username=user,
                                 fs_type=fs_type,
-                                clustername=clustername,
                                 mount_path=mount_path
                             )
     G_ulockmgr.release(user)
