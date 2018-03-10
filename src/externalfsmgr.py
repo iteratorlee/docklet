@@ -4,6 +4,8 @@ import sys
 import subprocess
 from log import logger
 
+import oss2
+
 class ExternalFSManager(object):
     '''
     Handle the mounting of external file system
@@ -110,3 +112,67 @@ class AliyunOSSManager(ExternalFSManager):
             return [False, msg]
         else:
             return [True, msg]
+
+class AliyunOSSManagerInternal(ExternalFSManager):
+    '''
+    An implementation of mounting Aliyun OSS Service to the workspace
+    to adapt running data processing programs in Docklet.
+    In current Docklet version, the user need to syncronize their cloud
+    files mannually.
+    '''
+    @classmethod
+    def list_objs(bucket, prefix=''):
+        objs = {}
+        if prefix == '':
+            for obj in oss2.ObjectIterator(bucket, delimiter='/'):
+                file_meta = {}
+                if obj.is_prefix():
+                    file_meta['type'] = 'dir'
+                else:
+                    file_meta['type'] = 'file'
+                objs[obj.key] = file_meta
+        else:
+            for obj in oss2.ObjectIterator(bucket, prefix=prefix):
+                file_meta = {}
+                obj_name = obj.key[len(prefix):]
+                if obj_name == "":
+                    continue
+                if '/' in obj_name:
+                    obj_name = obj_name.split('/')[0] + '/'
+                    if obj_name in objs:
+                        continue
+                    file_meta['type'] = 'dir'
+                else:
+                    file_meta['type'] = 'file'
+                objs[obj_name] = file_meta
+
+        return objs
+
+    @classmethod
+    def trace_objs(bucket, prefix=''):
+        objs = list_objs(bucket, prefix)
+        print('prefix : %s' % prefix)
+        print(json.dumps(objs, indent=4))
+        for key in objs:
+            if objs[key]['type'] == 'dir':
+                trace_objs(bucket, prefix + key)
+
+    @classmethod
+    def get_bucket(access_id, access_key, endpoint, bucket_name):
+        auth = oss2.Auth(access_id, access_key)
+        bucket = oss2.Bucket(auth, endpoint, bucket_name)
+        return bucket
+
+    @classmethod
+    def mount(self, **kwargs):
+        mount_path = kwargs['mount_path']
+        bucket_name = kwargs['bucket_name']
+        endpoint = kwargs['endpoint']
+        access_id = kwargs['access_id']
+        access_key = kwargs['access_key']
+        bucket = self.get_bucket(access_id, access_key, endpoint, bucket_name)
+        pass
+
+    @classmethod
+    def unmount(self, **kwargs):
+        pass
