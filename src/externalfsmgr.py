@@ -121,7 +121,7 @@ class AliyunOSSManagerInternal(ExternalFSManager):
     files mannually.
     '''
     @classmethod
-    def list_objs(bucket, prefix=''):
+    def list_objs(self, bucket, prefix=''):
         objs = {}
         if prefix == '':
             for obj in oss2.ObjectIterator(bucket, delimiter='/'):
@@ -149,8 +149,8 @@ class AliyunOSSManagerInternal(ExternalFSManager):
         return objs
 
     @classmethod
-    def trace_objs(bucket, prefix=''):
-        objs = list_objs(bucket, prefix)
+    def trace_objs(self, bucket, prefix=''):
+        objs = self.list_objs(bucket, prefix)
         print('prefix : %s' % prefix)
         print(json.dumps(objs, indent=4))
         for key in objs:
@@ -158,7 +158,7 @@ class AliyunOSSManagerInternal(ExternalFSManager):
                 trace_objs(bucket, prefix + key)
 
     @classmethod
-    def get_bucket(access_id, access_key, endpoint, bucket_name):
+    def get_bucket(self, access_id, access_key, endpoint, bucket_name):
         auth = oss2.Auth(access_id, access_key)
         bucket = oss2.Bucket(auth, endpoint, bucket_name)
         return bucket

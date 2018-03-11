@@ -119,6 +119,12 @@ def redirect_dochome():
 def config():
     return configView.as_view()
 
+@app.route("/external_fs/view/<fs_type>/<view_path>", methods=['GET'])
+@login_required
+def view_objects(fs_type, view_path):
+    listExternalFSObjectsView.fs_type = fs_type
+    listExternalFSObjectsView.view_path = view_path
+    return listExternalFSObjectsView.as_view()
 
 @app.route("/workspace/create/", methods=['GET'])
 @activated_required

@@ -1,0 +1,39 @@
+{% extends "base_AdminLTE.html"%}
+{% block title %}Docklet | View{% endblock %}
+
+{% block panel_title %}Files{% endblock %}
+
+{% block panel_list %}{% endblock %}
+
+{% block content %}
+ <table class="table table-bordered">
+     <h3>FS Type : {{ fs_type }}, Path : {{ path }}</h3>
+     <thead>
+         <tr>
+            <th>Object Name</th>
+            <th>Object Type</th>
+            <th>Status</th>
+            <th>Operation</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for filename in data %}
+        <tr>
+            {% if data[filename]['type'] == 'dir' %}
+            <td><a href="/external_fs/view/{{ fs_type }}/{{ path + '/' + filename }}">{{ filename }}</a></td>
+            {% else %}
+            <td>{{ filename }}</td>
+            {% endif %}
+            <td>{{ data[filename]['type'] }}</td>
+            {% if data[filename]['type'] == 'file' %}
+            <td>Not Downloaded</td>
+            <td><a class="btn btn-xs btn-info" href="">Download</a></td>
+            {% else %}
+            <td>/</td>
+            <td>/</td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

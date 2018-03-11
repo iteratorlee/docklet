@@ -10,7 +10,7 @@ import proxytool
 import requests, threading
 import traceback
 from nettools import portcontrol
-from externalfsmgr import AliyunOSSManager
+from externalfsmgr import AliyunOSSManager, AliyunOSSManagerInternal
 
 userpoint = "http://" + env.getenv('USER_IP') + ":" + str(env.getenv('USER_PORT'))
 def post_to_user(url = '/', data={}):
@@ -382,7 +382,9 @@ class VclusterMgr(object):
                     'fs_type' : 'aliyun_oss',
                     'mount_path' : kwargs['mount_path'],
                     'bucket_name' : kwargs['bucket_name'],
-                    'endpoint' : kwargs['endpoint']
+                    'endpoint' : kwargs['endpoint'],
+                    'access_id' : kwargs['access_id'],
+                    'access_key' : kwargs['access_key']
                 }
                 external_fs_info['external_fs_info'].append(curr_external_fs_info)
                 external_fs_info_file_path = self.fspath + "/global/users/" + kwargs['username'] + "/external_fs_info"
@@ -420,6 +422,25 @@ class VclusterMgr(object):
         else:
             return [False, "fs type unrecognized"]
 
+    def view_external_fs(self, username, fs_type, view_path):
+        [status, external_fs_info] = self.get_external_fs_info(username)
+        if not status:
+            return [False, "external fs info file not found"]
+        if fs_type == 'aliyun_oss':
+            access_id, access_key, endpoint, bucket_name = None, None, None, None
+            for curr_external_fs_info in external_fs_info['external_fs_info']:
+                if curr_external_fs_info['mount_path'] == view_path:
+                    access_id = curr_external_fs_info['access_id']
+                    access_key = curr_external_fs_info['access_key']
+                    endpoint = curr_external_fs_info['endpoint']
+                    bucket_name = curr_external_fs_info['bucket_name']
+            if access_id == None:
+                return [False, "external fs view path not found"]
+            bucket = AliyunOSSManagerInternal.get_bucket(access_id, access_key, endpoint, bucket_name)
+            data = AliyunOSSManagerInternal.list_objs(bucket) #TODO: set prefix
+            return [True, data]
+        else:
+            return [False, "fs type unrecognized %s" % fs_type]
 
     def flush_cluster(self,username,clustername,containername):
         begintime = datetime.datetime.now()

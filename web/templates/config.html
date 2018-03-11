@@ -480,7 +480,7 @@
            <tr>
                <td>{{ record['fs_type'] }}</td>
                <td>{{ record['bucket_name'] }}</td>
-               <td>/external_fs/{{ record['mount_path'] }}</td>
+               <td><a href="/external_fs/view/{{ record['fs_type'] }}/{{ record['mount_path'] }}">/external_fs/{{ record['mount_path'] }}</a></td>
                <td>{{ record['endpoint'] }}</td>
                <td><a class="btn btn-xs btn-danger" href="/external_fs/unmount/{{master.split("@")[0]}}/{{ record['fs_type'] }}/{{ record['mount_path'] }}">Unmount</a></td>
            </tr>

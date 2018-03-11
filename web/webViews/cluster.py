@@ -484,3 +484,29 @@ class unmountExternalFSView(normalView):
     @classmethod
     def get(self):
         return self.post()
+
+class listExternalFSObjectsView(normalView):
+    template_path = "error.html"
+
+    @classmethod
+    def post(self):
+        data = {
+            "fs_type" : self.fs_type,
+            "view_path" : self.view_path
+        }
+        result = dockletRequest.post_to_all('/external_fs/view/', data)
+        all_data = {}
+        for master in result:
+            value = result[master]
+            if value.get("success") == "true":
+                data = value.get("data")
+                #return self.render("view_external_fs.html", data=data)
+                for filename in data:
+                    all_data[filename] = data[filename]
+            else:
+                return self.render(self.template_path, message=value.get("message"))
+        return self.render("view_external_fs.html", fs_type=self.fs_type, path=self.view_path, data=all_data)
+
+    @classmethod
+    def get(self):
+        return self.post()

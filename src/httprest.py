@@ -530,6 +530,21 @@ def unmount_external_fs(user, beans, form):
     else:
         return json.dumps({'success':'false', 'message':message})
 
+@app.route("/external_fs/view/", methods=['POST'])
+@login_required
+def view_external_fs(user, beans, form):
+    global G_vclustermgr
+    global G_ulockmgr
+    fs_type = form.get("fs_type")
+    view_path = form.get("view_path")
+    logger.info("handle request : view external fs, path : %s" % view_path)
+    G_ulockmgr.acquire(user)
+    [status, data] = G_vclustermgr.view_external_fs(user, fs_type, view_path)
+    G_ulockmgr.release(user)
+    if status is True:
+        return json.dumps({'success':'true', 'data':data})
+    else:
+        return json.dumps({'success':'false', 'message':data})
 
 @app.route("/monitor/hosts/<com_id>/<issue>/", methods=['POST'])
 @login_required
