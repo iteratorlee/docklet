@@ -4,6 +4,8 @@ import sys
 import subprocess
 from log import logger
 
+from updatebase import aufs_update_base
+
 import oss2
 
 class ExternalFSManager(object):
@@ -131,6 +133,7 @@ class AliyunOSSManager(ExternalFSManager):
 
     @classmethod
     def sync_oss(self, ro_path, rw_path):
+        aufs_update_base(rw_path, ro_path)
         return True, ''
 
     @classmethod
