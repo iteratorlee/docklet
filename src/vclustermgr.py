@@ -367,9 +367,13 @@ class VclusterMgr(object):
             return [False, "fs type has not been indicated"]
         #TODO: check if mount_path is legal
         global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/external_data/" + kwargs['mount_path']
+        global_mount_path_ro = self.fspath + "/global/users/" + kwargs['username'] + "/external_data_ro/" + kwargs['mount_path']
+        global_mount_path_rw = self.fspath + "/global/users/" + kwargs['username'] + "/external_data_rw/" + kwargs['mount_path']
         if kwargs['fs_type'] == 'aliyun_oss':
             [status, msg] = AliyunOSSManager.mount(
                     mount_path=global_mount_path,
+                    mount_path_ro=global_mount_path_ro,
+                    mount_path_rw=global_mount_path_rw,
                     bucket_name=kwargs['bucket_name'],
                     access_id=kwargs['access_id'],
                     access_key=kwargs['access_key'],
@@ -400,6 +404,8 @@ class VclusterMgr(object):
             return [False, "fs type has not been indicated"]
 
         global_mount_path = self.fspath + "/global/users/" + kwargs['username'] + "/external_data/" + kwargs['mount_path']
+        global_mount_path_ro = self.fspath + "/global/users/" + kwargs['username'] + "/external_data_ro/" + kwargs['mount_path']
+        global_mount_path_rw = self.fspath + "/global/users/" + kwargs['username'] + "/external_data_rw/" + kwargs['mount_path']
         if kwargs['fs_type'] == 'aliyun_oss':
             idx = 0
             for curr_external_fs_info in external_fs_info['external_fs_info']:
@@ -409,7 +415,9 @@ class VclusterMgr(object):
             if idx == len(external_fs_info['external_fs_info']):
                 return [False, "no such external fs mounted"]
             [status, msg] = AliyunOSSManager.unmount(
-                    mount_path=global_mount_path
+                    mount_path=global_mount_path,
+                    mount_path_ro=global_mount_path_ro,
+                    mount_path_rw=global_mount_path_rw
                 )
             if status:
                 external_fs_info['external_fs_info'].pop(idx)
