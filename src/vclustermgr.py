@@ -376,8 +376,8 @@ class VclusterMgr(object):
                     endpoint=kwargs['endpoint']
                 )
             if status:
-                if not 'external_fs' in external_fs_info.keys():
-                    external_fs_info['external_fs'] = []
+                if not 'external_fs_info' in external_fs_info.keys():
+                    external_fs_info['external_fs_info'] = []
                 curr_external_fs_info = {
                     'fs_type' : 'aliyun_oss',
                     'mount_path' : kwargs['mount_path'],
