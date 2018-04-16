@@ -15,7 +15,7 @@ echo "[Info] [userinit.sh] initialize for user $USERNAME"
 USER_DIR=$FS_PREFIX/global/users/$USERNAME
 [ -d $USER_DIR ] && echo "[userinit.sh] user directory already exists" && exit 0
 
-mkdir -p $USER_DIR/{clusters,hosts,data,external_data,ssh}
+mkdir -p $USER_DIR/{clusters,hosts,data,external_data_rw,external_data_ro,external_data,ssh}
 
 SSH_DIR=$USER_DIR/ssh
 # here generate id_rsa.pub has "user@hostname" at the end

@@ -4,6 +4,8 @@ import sys
 import subprocess
 from log import logger
 
+from updatebase import aufs_update_base
+
 import oss2
 
 class ExternalFSManager(object):
@@ -43,40 +45,66 @@ class AliyunOSSManager(ExternalFSManager):
         os.chmod(oss_passwd_file, stat.S_IRUSR + stat.S_IWUSR + stat.S_IRGRP)
 
     @classmethod
-    def mount_oss(self, bucket_name, mount_path, endpoint):
-        logger.info('mount_oss function entered')
-        if not os.path.exists(mount_path):
+    def mount_oss(self, bucket_name, mount_path, mount_path_ro, mount_path_rw, endpoint):
+        if not os.path.exists(mount_path_ro):
             logger.info('oss mount path "%s" does not exist, trying to create' % mount_path)
             try:
-                os.makedirs(mount_path)
-            except Error:
+                os.makedirs(mount_path_ro)
+            except Exception as e:
                 error_msg = ('create mount path %s error' % mount_path)
                 return False, error_msg
 
-        mount_cmd = 'ossfs ' + bucket_name + ' ' + mount_path + ' -ourl=' + endpoint + ' -o allow_other'
+        mount_cmd = 'ossfs ' + bucket_name + ' ' + mount_path_ro + ' -ourl=' + endpoint + ' -o allow_other'
         prog = subprocess.Popen(mount_cmd, shell=True, stderr=subprocess.PIPE)
         msg = prog.stderr.read().decode()
         if msg != '':
             return False, msg
         else:
             logger.info('aliyun oss mounted: bucket_name: %s, mount_path %s, endpoint: %s' \
-                        % (bucket_name, mount_path, endpoint))
-            if mount_path[-1] != '/':
-                mount_path += '/*'
+                        % (bucket_name, mount_path_ro, endpoint))
+            if mount_path_ro[-1] != '/':
+                mount_path_ro += '/*'
             else:
-                mount_path += '*'
+                mount_path_ro += '*'
 
-            chmod_cmd = 'chmod -R 777 ' + mount_path
+            chmod_cmd = 'chmod -R 777 ' + mount_path_ro
             prog = subprocess.Popen(chmod_cmd, shell=True, stderr=subprocess.PIPE)
             msg = prog.stderr.read().decode()
             if msg != '':
                 return False, msg
-            return True, ''
+            else:
+                mount_path_ro = mount_path_ro[:-1]
+                return self.mount_aufs(mount_path_ro, mount_path_rw, mount_path)
 
     @classmethod
-    def umount_oss(self, mount_path):
+    def mount_aufs(self, ro_path, rw_path, mount_path):
+        if not os.path.exists(rw_path):
+            logger.info('aufs read/write path %s does not exist, trying to create' % rw_path)
+            try:
+                os.makedirs(rw_path)
+            except Exception as e:
+                error_msg = ('create aufs read/write path %s error' % rw_path)
+                return False, error_msg
         if not os.path.exists(mount_path):
-            error_msg = 'oss mount path "%s" does not exist!' % mount_path
+            logger.info('aufs mount path %s does not exist, trying to create' % mount_path)
+            try:
+                os.makedirs(mount_path)
+            except Exception as e:
+                error_msg = ('create aufs mount path %s error' % mount_path)
+                return False, error_msg
+        mount_cmd = 'mount -t aufs -o br=' + rw_path + '=rw:' + ro_path + '=ro none ' + mount_path
+        prog = subprocess.Popen(mount_cmd, shell=True, stderr=subprocess.PIPE)
+        msg = prog.stderr.read().decode()
+        if msg != '':
+            return False, msg
+        else:
+            logger.info('aufs mounted: ro_path: %s, rw_path: %s, mount_path: %s' % (ro_path, rw_path, mount_path))
+            return True, msg
+
+    @classmethod
+    def umount_oss(self, mount_path, mount_path_ro, mount_path_rw):
+        if not os.path.exists(mount_path):
+            error_msg = 'aufs(oss) mount path "%s" does not exist!' % mount_path
             return False, error_msg
         else:
             cmd = 'umount ' + mount_path
@@ -85,18 +113,40 @@ class AliyunOSSManager(ExternalFSManager):
             if msg != '':
                 return False, msg
             else:
-                logger.info('aliyun oss unmounted: mount_path: %s' % mount_path)
+                logger.info('aufs(oss) unmounted: mount_path: %s' % mount_path)
+                return self.umount_oss_ro(mount_path_ro, mount_path_rw)
+
+    @classmethod
+    def umount_oss_ro(self, ro_path, rw_path):
+        status, msg = self.sync_oss(ro_path, rw_path)
+        if not status:
+            return status, msg
+        else:
+            cmd = 'umount ' + ro_path
+            prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+            msg = prog.stderr.read().decode()
+            if msg != '':
+                return False, msg
+            else:
+                logger.info('ossfs unmounted: mount_path: %s' % ro_path)
                 return True, msg
+
+    @classmethod
+    def sync_oss(self, ro_path, rw_path):
+        aufs_update_base(rw_path, ro_path)
+        return True, ''
 
     @classmethod
     def mount(self, **kwargs):
         mount_path = kwargs['mount_path']
+        mount_path_ro = kwargs['mount_path_ro']
+        mount_path_rw = kwargs['mount_path_rw']
         bucket_name = kwargs['bucket_name']
         endpoint = kwargs['endpoint']
         access_id = kwargs['access_id']
         access_key = kwargs['access_key']
         self.add_oss_ak(bucket_name, access_id, access_key)
-        status, msg = self.mount_oss(bucket_name, mount_path, endpoint)
+        status, msg = self.mount_oss(bucket_name, mount_path, mount_path_ro, mount_path_rw, endpoint)
         if not status:
             logger.error('mount failed: ', msg)
             return [False, msg]
@@ -106,7 +156,9 @@ class AliyunOSSManager(ExternalFSManager):
     @classmethod
     def unmount(self, **kwargs):
         mount_path = kwargs['mount_path']
-        status, msg = self.umount_oss(mount_path)
+        mount_path_ro = kwargs['mount_path_ro']
+        mount_path_rw = kwargs['mount_path_rw']
+        status, msg = self.umount_oss(mount_path, mount_path_ro, mount_path_rw)
         if not status:
             logger.error('unmount failed: ', msg)
             return [False, msg]
