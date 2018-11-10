@@ -27,7 +27,7 @@ import http.server, cgi, json, sys, shutil, traceback
 import xmlrpc.client
 from socketserver import ThreadingMixIn
 from utils import etcdlib, imagemgr
-from master import nodemgr, vclustermgr, notificationmgr, lockmgr, cloudmgr
+from master import nodemgr, vclustermgr, notificationmgr, lockmgr, cloudmgr, storagemgr
 from utils.logs import logs
 from master import userManager, beansapplicationmgr, monitor, sysmgr, network
 from worker.monitor import History_Manager
@@ -724,6 +724,29 @@ def resetall_system(user, beans, form):
         return json.dumps({'success':'false', 'message': message})
     return json.dumps(result)
 
+@app.route("/storage/list/", methods=['POST'])
+@login_required
+def list_storage(user, beans, form):
+    result = G_storagemgr.list_dataset(user)
+    return json.dumps({
+        'all_dataset': result
+    })
+
+@app.route("/storage/update/", methods=['POST'])
+@login_required
+def update_storage(user, beans, form):
+    pass
+
+@app.route("/storage/create/", methods=['POST'])
+@login_required
+def create_storage(user, beans, form):
+    pass
+
+@app.route("/storage/upload/", methods=['POST'])
+@login_required
+def import_storage(user, beans, form):
+    pass
+
 # @app.route("/inside/cluster/scaleout/", methods=['POST'])
 # @inside_ip_required
 # def inside_cluster_scalout(cur_user, cluster_info, form):
@@ -791,6 +814,7 @@ if __name__ == '__main__':
     global G_applicationmgr
     global G_ulockmgr
     global G_cloudmgr
+    global G_storagemgr
     # move 'tools.loadenv' to the beginning of this file
 
     fs_path = env.getenv("FS_PREFIX")
@@ -906,5 +930,7 @@ if __name__ == '__main__':
     logger.info("master_collector started")
     # server = http.server.HTTPServer((masterip, masterport), DockletHttpHandler)
     logger.info("starting master server")
+
+    G_storagemgr = storagemgr.StorageMgr()
 
     app.run(host = masterip, port = masterport, threaded=True)

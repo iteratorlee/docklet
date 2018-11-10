@@ -39,6 +39,7 @@ from webViews.cloud import *
 from webViews.authenticate.auth import login_required, administration_required,activated_required
 from webViews.authenticate.register import registerView
 from webViews.authenticate.login import loginView, logoutView
+from webViews.storage import *
 import webViews.dockletrequest
 from webViews import cookie_tool
 import traceback
@@ -119,6 +120,41 @@ def redirect_dochome():
 def config():
     return configView.as_view()
 
+
+@app.route("/storage/", methods=['GET'])
+@login_required
+def list_storage():
+    return StorageListView.as_view()
+
+@app.route("/storage/create/", methods=['POST'])
+@login_required
+def create_dataset():
+    CreateDataSetView.dataset = request.form
+    return CreateDataSetView.as_view()
+
+@app.route("/storage/<dataset_name>/update/", methods=['GET'])
+@login_required
+def update_dateset(dataset_name):
+    UpdateDataSetView.dataset_name = dataset_name
+    return UpdateDataSetView.as_view()
+
+@app.route("/storage/<dataset_name>/import/", methods=['GET'])
+@login_required
+def import_dateset(dataset_name):
+    ImportDataSetView.dataset_name = dataset_name
+    return ImportDataSetView.as_view()
+
+@app.route("/storage/<dataset_name>/delete/", methods=['GET'])
+@login_required
+def delete_dateset(dataset_name):
+    DeleteDataSetView.dataset_name = dataset_name
+    return DeleteDataSetView.as_view()
+
+@app.route("/storage/<dataset_name>/share/", methods=['GET'])
+@login_required
+def share_dataset(dataset_name):
+    ShareDataSetView.dataset_name = dataset_name
+    return ShareDataSetView.as_view()
 
 @app.route("/workspace/create/", methods=['GET'])
 #@activated_required
